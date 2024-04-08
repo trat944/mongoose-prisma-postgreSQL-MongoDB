@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import UserModel from "../model/user.model";
 import prisma from "../db/client";
 
 export const createUser = async (req: Request, res: Response) => {
@@ -18,7 +17,11 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const allUsers = await UserModel.find().populate("movies");
+    const allUsers = await prisma.user.findMany({
+      include: {
+        movies: true
+      }
+    });
     res.status(200).send(allUsers);
   } catch (error) {
     res.status(400).send(error);
