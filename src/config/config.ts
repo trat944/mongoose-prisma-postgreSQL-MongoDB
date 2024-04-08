@@ -34,7 +34,7 @@ const ENV = process.env.NODE_ENV ?? "development";
 const CONFIG: TConfig = {
   development:{
       app:{
-          PORT: process.env.PORT || 4001
+          PORT: process.env.PORT || 4000
       },
       db: {
           URI: process.env.MONDOBD_URI || "mongodb://localhost:27017"
@@ -42,7 +42,7 @@ const CONFIG: TConfig = {
   },
   production: {
       app: {
-          PORT: process.env.PORT || 8081
+          PORT: process.env.PORT || 8080
       },
       db: {
           URI: process.env.MONDOBD_URI || "mongodb://localhost:27017"
