@@ -1,11 +1,23 @@
 import { Request, Response } from "express";
 import prisma from "../db/client";
 
+export const getAllUser = async (req: Request, res: Response) => {
+  try {
+    const allUsers = await prisma.user.findMany({
+      include:{
+        movies: true
+      }
+    });
+    res.status(200).send(allUsers);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+};
+
 export const createUser = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
 
   try {
-    console.log('new user')
     const newUser = await prisma.user.create({
       data:{ name, email, password }
     });
@@ -15,15 +27,31 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-export const getAllUsers = async (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response) => {
+  const { name, email, password } = req.body;
+  const { userId } = req.params;
+
   try {
-    const allUsers = await prisma.user.findMany({
-      include: {
-        movies: true
-      }
-    });
-    res.status(200).send(allUsers);
+    const userUpdated = await prisma.user.update({
+      where: {id:userId},
+      data:{name, email, password}
+    })
+    res.status(201).send(userUpdated)
   } catch (error) {
-    res.status(400).send(error);
+    res.status(400).send(error)
+    console.log(error)
   }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  try {
+    const userDeleted = await prisma.user.delete({ 
+     where: { id: userId}
+    })
+    res.status(200).send(userDeleted)
+  } catch (error) {
+    res.status(400).send(error)
+  }
+
 };
