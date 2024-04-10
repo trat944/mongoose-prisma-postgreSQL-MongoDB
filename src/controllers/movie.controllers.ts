@@ -2,17 +2,60 @@ import { Request, Response } from "express";
 import prisma from "../db/client";
 
 export const createMovie = async (req: Request, res: Response) => {
-  const { name, image } = req.body;
-  const { userId } = req.params;
-  try {
-    const movie = await prisma.movies.create({
-      data:{ name, image, user: { connect : {id:userId}} }
-    });     
-    res.status(201).send(movie);
-  } catch (error) {
-    res.status(400).send(error);
-  }
+	const { name, image, genres } = req.body;
+	const userId = parseInt(req.params.userId);
+
+	if (!name || !image) {
+		return res
+			.status(400)
+			.send({ message: "The fields name and image are required" });
+	}
+
+	if (!userId) {
+		return res.status(400).send({ message: "The field userId is required" });
+	}
+
+	try {
+		const movie = await prisma.$transaction(async (prisma) => {
+			const newMovie = await prisma.movies.create({
+				data: {
+					name: name,
+					image: image,
+					userId: userId,
+				},
+			});
+
+			if (genres && genres.length) {
+				const createGenres = genres.map((genreId: number) => ({
+					movieId: newMovie.id,
+					genreId: genreId,
+				}));
+
+				await prisma.movieGenre.createMany({
+					data: createGenres,
+				});
+			}
+
+			return prisma.movies.findUnique({
+				where: {
+					id: newMovie.id,
+				},
+				include: {
+					genres: true,
+				},
+			});
+		});
+
+		res.status(201).send({
+			msg: "Movie created successfully",
+			data: movie,
+			typeof: typeof movie,
+		});
+	} catch (error) {
+		res.status(400).send(error);
+	}
 };
+
 export const getAllMovies = async (req: Request, res: Response) => {
   try {
     const allMovies = await prisma.movies.findMany({
@@ -27,23 +70,67 @@ export const getAllMovies = async (req: Request, res: Response) => {
 };
 
 export const updateMovie = async (req: Request, res: Response) => {
-  const { name, image } = req.body;
-  const { movieId } = req.params;
+	const { name, image, genres } = req.body;
+	const movieId = parseInt(req.params.movieId);
 
-  try {
-    const movieUpdated = await prisma.movies.update({
-      where: {id:movieId},
-      data:{name, image}
-    })
-    res.status(201).send(movieUpdated)
-  } catch (error) {
-    res.status(400).send(error)
-    console.log(error)
-  }
+	if (!movieId) {
+		return res.status(400).send({ message: "The field userId is required" });
+	}
+
+	try {
+		const movie = await prisma.$transaction(async (prisma) => {
+			const newMovie = await prisma.movies.update({
+        where: {
+          id: movieId
+        },
+				data: {
+					name: name,
+					image: image,
+				},
+			});
+
+			if (genres && genres.length) {
+				const createGenres = genres.map((genreId: number) => ({
+					movieId: newMovie.id,
+					genreId: genreId,
+				}));
+
+				await prisma.movieGenre.createMany({
+					data: createGenres,
+				});
+
+        await prisma.movieGenre.deleteMany({
+          where: {
+            movieId: movieId
+          }
+        })
+			}
+
+
+			return prisma.movies.findUnique({
+				where: {
+					id: newMovie.id,
+				},
+				include: {
+					genres: true,
+				},
+			});
+		});
+
+		res.status(201).send({
+			msg: "Movie created successfully",
+			data: movie,
+			typeof: typeof movie,
+		});
+	} catch (error) {
+		res.status(400).send(error);
+	}
 };
 
+
+
 export const deleteMovie = async (req: Request, res: Response) => {
-  const { movieId } = req.params;
+  const  movieId  = parseInt(req.params.movieId);
   try {
     const movieDeleted = await prisma.movies.delete({ 
      where: { id: movieId}
