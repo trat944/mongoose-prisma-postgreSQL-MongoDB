@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../db/client";
 
 export const createMovie = async (req: Request, res: Response) => {
-	const { name, image, genres } = req.body;
+	const { name, image, genre } = req.body;
 	const userId = parseInt(req.params.userId);
 
 	if (!name || !image) {
@@ -25,8 +25,8 @@ export const createMovie = async (req: Request, res: Response) => {
 				},
 			});
 
-			if (genres && genres.length) {
-				const createGenres = genres.map((genreId: number) => ({
+			if (genre && genre.length) {
+				const createGenres = genre.map((genreId: number) => ({
 					movieId: newMovie.id,
 					genreId: genreId,
 				}));
@@ -70,7 +70,7 @@ export const getAllMovies = async (req: Request, res: Response) => {
 };
 
 export const updateMovie = async (req: Request, res: Response) => {
-	const { name, image, genres } = req.body;
+	const { name, image, genre } = req.body;
 	const movieId = parseInt(req.params.movieId);
 
 	if (!movieId) {
@@ -89,8 +89,8 @@ export const updateMovie = async (req: Request, res: Response) => {
 				},
 			});
 
-			if (genres && genres.length) {
-				const createGenres = genres.map((genreId: number) => ({
+			if (genre && genre.length) {
+				const createGenres = genre.map((genreId: number) => ({
 					movieId: newMovie.id,
 					genreId: genreId,
 				}));

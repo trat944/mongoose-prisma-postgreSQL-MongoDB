@@ -2,26 +2,17 @@ import { Request, Response } from "express";
 import prisma from "../db/client";
 
 export const createGenre = async (req: Request, res: Response) => {
-	const { name } = req.body;
-	if (!name) {
-		return res.status(400).send({ message: "The field name is required" });
-	}
-	try {
-		const genre = await prisma.genre.create({
-			data: {
-				name: name,
-			},
-		});
-		res.status(201).send({
-			type: typeof genre,
-			msg: "Genre created successfully",
-			data: genre,
-		});
-	} catch {
-		res.status(500).send({ message: "Internal Server Error" });
-	}
+  const { name } = req.body;
+  const  movieId  = parseInt(req.params.movieIdId)
+  try {
+    const genre = await prisma.genre.create({
+      data:{ name }
+    });     
+    res.status(201).send(genre);
+  } catch (error) {
+    res.status(400).send(error);
+  }
 };
-
 export const getAllGenres = async (req: Request, res: Response) => {
   try {
     const allGenres = await prisma.genre.findMany();
@@ -33,7 +24,7 @@ export const getAllGenres = async (req: Request, res: Response) => {
 
 export const updateGenre = async (req: Request, res: Response) => {
   const { name } = req.body;
-  const  genreId  = parseInt(req.params.genreId);
+  const  genreId  = parseInt(req.params.genreId)
 
   try {
     const genreUpdated = await prisma.genre.update({
@@ -57,5 +48,4 @@ export const deleteGenre = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(400).send(error)
   }
-
 };
